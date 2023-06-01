@@ -54,7 +54,7 @@ public class SAp implements BranchPredictor {
         SC.load(CombinationalLogic.count(SC.read(), actual == BranchResult.TAKEN, CountMode.SATURATING));
         Bit[] selector = getRBAddressLine(branchInstruction.getInstructionAddress());
         Bit[] addressLine = branchInstruction.getInstructionAddress();
-        PAPHT.put(getCacheEntry(selector, PSBHR.read(addressLine).read()), SC.read());
+        PAPHT.put(getCacheEntry(addressLine, PSBHR.read(selector).read()), SC.read());
         ShiftRegister SR = PSBHR.read(selector);
         SR.insert(actual == BranchResult.TAKEN ? Bit.ONE : Bit.ZERO);
         PSBHR.write(selector, SR.read());
