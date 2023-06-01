@@ -37,8 +37,9 @@ public class SAp implements BranchPredictor {
     @Override
     public BranchResult predict(BranchInstruction branchInstruction) {
         // TODO: complete Task 1
-        Bit[] addressLine = getRBAddressLine(branchInstruction.getInstructionAddress());
-        Bit[] BH = PSBHR.read(addressLine).read();
+        Bit[] RBaddressLine = getRBAddressLine(branchInstruction.getInstructionAddress());
+        Bit[] addressLine = branchInstruction.getInstructionAddress();
+        Bit[] BH = PSBHR.read(RBaddressLine).read();
         PAPHT.putIfAbsent(getCacheEntry(addressLine, BH), getDefaultBlock());
         Bit[] ans = PAPHT.get(getCacheEntry(addressLine, BH));
         SC.load(ans);
@@ -52,7 +53,8 @@ public class SAp implements BranchPredictor {
         // TODO:complete Task 2
         SC.load(CombinationalLogic.count(SC.read(), actual == BranchResult.TAKEN, CountMode.SATURATING));
         Bit[] selector = getRBAddressLine(branchInstruction.getInstructionAddress());
-        PAPHT.put(getCacheEntry(selector, PSBHR.read(selector).read()), SC.read());
+        Bit[] addressLine = branchInstruction.getInstructionAddress();
+        PAPHT.put(getCacheEntry(selector, PSBHR.read(addressLine).read()), SC.read());
         ShiftRegister SR = PSBHR.read(selector);
         SR.insert(actual == BranchResult.TAKEN ? Bit.ONE : Bit.ZERO);
         PSBHR.write(selector, SR.read());
