@@ -21,19 +21,19 @@ public class PAs implements BranchPredictor {
 
     public PAs(int BHRSize, int SCSize, int branchInstructionSize, int KSize, HashMode hashMode) {
         // TODO: complete the constructor
-        this.branchInstructionSize = 0;
-        this.KSize = 0;
+        this.branchInstructionSize = branchInstructionSize;
+        this.KSize = KSize;
         this.hashMode = HashMode.XOR;
 
         // Initialize the PABHR with the given bhr and branch instruction size
-        PABHR = null;
+        PABHR = new RegisterBank(branchInstructionSize, BHRSize);
 
         // Initializing the PAPHT with K bit as PHT selector and 2^BHRSize row as each PHT entries
         // number and SCSize as block size
-        PSPHT = null;
+        PSPHT = new PerAddressPredictionHistoryTable(branchInstructionSize, 1 << BHRSize, SCSize);
 
         // Initialize the saturating counter
-        SC = null;
+        SC = new SIPORegister("SC", SCSize, null);
     }
 
     /**
@@ -46,12 +46,25 @@ public class PAs implements BranchPredictor {
     @Override
     public BranchResult predict(BranchInstruction branchInstruction) {
         // TODO: complete Task 1
-        return BranchResult.NOT_TAKEN;
+        Bit[] addressLine = branchInstruction.getInstructionAddress();
+        Bit[] BH = PABHR.read(addressLine).read();
+        PSPHT.putIfAbsent(getCacheEntry(addressLine, BH), getDefaultBlock());
+        Bit[] ans = PSPHT.get(getCacheEntry(addressLine, BH));
+        SC.load(ans);
+        if (ans[0] == Bit.ZERO)
+            return BranchResult.NOT_TAKEN;
+        else return BranchResult.TAKEN;
     }
 
     @Override
     public void update(BranchInstruction instruction, BranchResult actual) {
         // TODO:complete Task 2
+        SC.load(CombinationalLogic.count(SC.read(), actual == BranchResult.TAKEN, CountMode.SATURATING));
+        Bit[] addressLine = instruction.getInstructionAddress();
+        PSPHT.put(getCacheEntry(addressLine, PABHR.read(addressLine).read()), SC.read());
+        ShiftRegister SR = PABHR.read(addressLine);
+        SR.insert(actual == BranchResult.TAKEN ? Bit.ONE : Bit.ZERO);
+        PABHR.write(addressLine, SR.read());
     }
 
     @Override
