@@ -1,35 +1,34 @@
-package hardwar.branch.prediction.judged.SAs;
+package hardwar.branch.prediction.judged.SAp;
+
 
 import hardwar.branch.prediction.shared.*;
 import hardwar.branch.prediction.shared.devices.*;
 
 import java.util.Arrays;
 
-public class SAs implements BranchPredictor {
+public class SAp implements BranchPredictor {
 
     private final int branchInstructionSize;
     private final int KSize;
     private final ShiftRegister SC;
     private final RegisterBank PSBHR; // per set branch history register
-    private final Cache<Bit[], Bit[]> PSPHT; // per set predication history table
-    private final HashMode hashMode;
+    private final Cache<Bit[], Bit[]> PAPHT; // per address predication history table
 
-    public SAs() {
-        this(4, 2, 8, 4, HashMode.XOR);
+    public SAp() {
+        this(4, 2, 8, 4);
     }
 
-    public SAs(int BHRSize, int SCSize, int branchInstructionSize, int KSize, HashMode hashMode) {
+    public SAp(int BHRSize, int SCSize, int branchInstructionSize, int KSize) {
         // TODO: complete the constructor
         this.branchInstructionSize = branchInstructionSize;
         this.KSize = KSize;
-        this.hashMode = HashMode.XOR;
 
-        // Initialize the PSBHR with the given bhr and branch instruction size
+        // Initialize the PSBHR with the given bhr and Ksize
         PSBHR = new RegisterBank(KSize, BHRSize);
 
         // Initializing the PAPHT with BranchInstructionSize as PHT Selector and 2^BHRSize row as each PHT entries
         // number and SCSize as block size
-        PSPHT = new PerAddressPredictionHistoryTable(branchInstructionSize, 1 << BHRSize, SCSize);
+        PAPHT = new PerAddressPredictionHistoryTable(branchInstructionSize, 1 << BHRSize, SCSize);
 
         // Initialize the SC register
         SC = new SIPORegister("SC", SCSize, null);
@@ -38,10 +37,10 @@ public class SAs implements BranchPredictor {
     @Override
     public BranchResult predict(BranchInstruction branchInstruction) {
         // TODO: complete Task 1
-        Bit[] addressLine = getAddressLine(branchInstruction.getInstructionAddress());
+        Bit[] addressLine = branchInstruction.getInstructionAddress();
         Bit[] BH = PSBHR.read(addressLine).read();
-        PSPHT.putIfAbsent(getCacheEntry(addressLine, BH), getDefaultBlock());
-        Bit[] ans = PSPHT.get(getCacheEntry(addressLine, BH));
+        PAPHT.putIfAbsent(getCacheEntry(addressLine, BH), getDefaultBlock());
+        Bit[] ans = PAPHT.get(getCacheEntry(addressLine, BH));
         SC.load(ans);
         if (ans[0] == Bit.ZERO)
             return BranchResult.NOT_TAKEN;
@@ -50,27 +49,51 @@ public class SAs implements BranchPredictor {
 
     @Override
     public void update(BranchInstruction branchInstruction, BranchResult actual) {
-        // TODO: complete Task 2
+        // TODO:complete Task 2
         SC.load(CombinationalLogic.count(SC.read(), actual == BranchResult.TAKEN, CountMode.SATURATING));
-        Bit[] selector = getAddressLine(branchInstruction.getInstructionAddress());
-        PSPHT.put(getCacheEntry(selector, PSBHR.read(selector).read()), SC.read());
+        Bit[] selector = branchInstruction.getInstructionAddress();
+        PAPHT.put(getCacheEntry(selector, PSBHR.read(selector).read()), SC.read());
         ShiftRegister SR = PSBHR.read(selector);
         SR.insert(actual == BranchResult.TAKEN ? Bit.ONE : Bit.ZERO);
         PSBHR.write(selector, SR.read());
     }
 
 
-    private Bit[] getAddressLine(Bit[] branchAddress) {
+    private Bit[] getRBAddressLine(Bit[] branchAddress) {
         // hash the branch address
-        return CombinationalLogic.hash(branchAddress, KSize, hashMode);
+        return hash(branchAddress);
     }
 
     private Bit[] getCacheEntry(Bit[] branchAddress, Bit[] BHRValue) {
         // Concatenate the branch address bits with the BHR bits
         Bit[] cacheEntry = new Bit[branchAddress.length + BHRValue.length];
-        System.arraycopy(branchAddress, 0, cacheEntry, 0, KSize);
+        System.arraycopy(branchAddress, 0, cacheEntry, 0, branchInstructionSize);
         System.arraycopy(BHRValue, 0, cacheEntry, branchAddress.length, BHRValue.length);
         return cacheEntry;
+    }
+
+
+    /**
+     * hash N bits to a K bit value
+     *
+     * @param bits program counter
+     * @return hash value of fist M bits of `bits` in K bits
+     */
+    private Bit[] hash(Bit[] bits) {
+        Bit[] hash = new Bit[KSize];
+
+        // XOR the first M bits of the PC to produce the hash
+        for (int i = 0; i < branchInstructionSize; i++) {
+            int j = i % KSize;
+            if (hash[j] == null) {
+                hash[j] = bits[i];
+            } else {
+                Bit xorProduce = hash[j].getValue() ^ bits[i].getValue() ? Bit.ONE : Bit.ZERO;
+                hash[j] = xorProduce;
+
+            }
+        }
+        return hash;
     }
 
     /**
