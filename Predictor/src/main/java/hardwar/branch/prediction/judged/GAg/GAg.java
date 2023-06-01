@@ -43,6 +43,7 @@ public class GAg implements BranchPredictor {
         // TODO : complete Task 1
         Bit[] BH = BHR.read();
         Bit[] ans = PHT.get(BH);
+        System.out.println(SC.monitor());
         SC.load(ans);
         if (ans[0] == Bit.ZERO)
             return BranchResult.NOT_TAKEN;
