@@ -1,4 +1,4 @@
-Thu Jun  1 12:10:05 UTC 2023
+Thu Jun  1 12:33:39 UTC 2023
 +------------+
 |SC  | 0 | 0 |
 +------------+
@@ -6017,9 +6017,20 @@ Exception in thread "main" hardwar.branch.prediction.judge.TestFailedException: 
 PAs: 
 Exception in thread "main" hardwar.branch.prediction.judge.TestFailedException: Test failed, 262 out of 1000 assertions passed
 	at hardwar.branch.prediction.judge.Judge.main(Judge.java:39)
-SAg: 
-Exception in thread "main" hardwar.branch.prediction.judge.TestFailedException: Test failed, 114 out of 1000 assertions passed
-	at hardwar.branch.prediction.judge.Judge.main(Judge.java:39)
+Exception in thread "main" java.lang.UnsupportedOperationException
+	at hardwar.branch.prediction.shared.devices.CombinationalLogic.hash(CombinationalLogic.java:83)
+	at hardwar.branch.prediction.judged.SAg.SAg.predict(SAg.java:38)
+	at hardwar.branch.prediction.judge.PredictorSimulator.lambda$simulate$0(PredictorSimulator.java:27)
+	at java.base/java.util.stream.IntPipeline$1$1.accept(IntPipeline.java:180)
+	at java.base/java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:104)
+	at java.base/java.util.Spliterator$OfInt.forEachRemaining(Spliterator.java:711)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:921)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at hardwar.branch.prediction.judge.PredictorSimulator.simulate(PredictorSimulator.java:30)
+	at hardwar.branch.prediction.judge.Judge.main(Judge.java:32)
 SAp: 
 Exception in thread "main" hardwar.branch.prediction.judge.TestFailedException: Test failed, 342 out of 1000 assertions passed
 	at hardwar.branch.prediction.judge.Judge.main(Judge.java:39)
