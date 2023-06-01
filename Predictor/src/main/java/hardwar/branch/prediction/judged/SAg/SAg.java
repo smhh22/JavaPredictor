@@ -94,6 +94,6 @@ public class SAg implements BranchPredictor {
 
     @Override
     public String monitor() {
-        return null;
+        return "SAg predictor snapshot: \n" + PSBHR.monitor() + SC.monitor() + PHT.monitor();
     }
 }
