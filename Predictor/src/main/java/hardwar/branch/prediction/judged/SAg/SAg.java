@@ -35,7 +35,7 @@ public class SAg implements BranchPredictor {
     @Override
     public BranchResult predict(BranchInstruction instruction) {
         // TODO: complete Task 1
-        Bit[] BH = PSBHR.read(CombinationalLogic.hash(instruction.getInstructionAddress(), KSize, HashMode.XOR)).read();
+        Bit[] BH = PSBHR.read(hash(instruction.getInstructionAddress())).read();
         PHT.putIfAbsent(BH, getDefaultBlock());
         Bit[] ans = PHT.get(BH);
         SC.load(ans);
@@ -48,7 +48,7 @@ public class SAg implements BranchPredictor {
     public void update(BranchInstruction branchInstruction, BranchResult actual) {
         // TODO: complete Task 2
         SC.load(CombinationalLogic.count(SC.read(), actual == BranchResult.TAKEN, CountMode.SATURATING));
-        Bit[] selector = PSBHR.read(CombinationalLogic.hash(branchInstruction.getInstructionAddress(), KSize, HashMode.XOR)).read();
+        Bit[] selector = PSBHR.read(hash(branchInstruction.getInstructionAddress())).read();
         PHT.put(selector, SC.read());
         ShiftRegister SR = PSBHR.read(selector);
         SR.insert(actual == BranchResult.TAKEN ? Bit.ONE : Bit.ZERO);
