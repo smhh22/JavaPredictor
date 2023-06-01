@@ -20,30 +20,43 @@ public class SAs implements BranchPredictor {
 
     public SAs(int BHRSize, int SCSize, int branchInstructionSize, int KSize, HashMode hashMode) {
         // TODO: complete the constructor
-        this.branchInstructionSize = 0;
-        this.KSize = 0;
+        this.branchInstructionSize = branchInstructionSize;
+        this.KSize = KSize;
         this.hashMode = HashMode.XOR;
 
         // Initialize the PSBHR with the given bhr and branch instruction size
-        PSBHR = null;
+        PSBHR = new RegisterBank(KSize, BHRSize);
 
         // Initializing the PAPHT with BranchInstructionSize as PHT Selector and 2^BHRSize row as each PHT entries
         // number and SCSize as block size
-        PSPHT = null;
+        PSPHT = new PerAddressPredictionHistoryTable(branchInstructionSize, 1 << BHRSize, SCSize);
 
         // Initialize the SC register
-        SC = null;
+        SC = new SIPORegister("SC", SCSize, null);
     }
 
     @Override
     public BranchResult predict(BranchInstruction branchInstruction) {
         // TODO: complete Task 1
-        return BranchResult.NOT_TAKEN;
+        Bit[] addressLine = getAddressLine(branchInstruction.getInstructionAddress());
+        Bit[] BH = PSBHR.read(addressLine).read();
+        PSPHT.putIfAbsent(getCacheEntry(addressLine, BH), getDefaultBlock());
+        Bit[] ans = PSPHT.get(getCacheEntry(addressLine, BH));
+        SC.load(ans);
+        if (ans[0] == Bit.ZERO)
+            return BranchResult.NOT_TAKEN;
+        else return BranchResult.TAKEN;
     }
 
     @Override
     public void update(BranchInstruction branchInstruction, BranchResult actual) {
         // TODO: complete Task 2
+        SC.load(CombinationalLogic.count(SC.read(), actual == BranchResult.TAKEN, CountMode.SATURATING));
+        Bit[] selector = getAddressLine(branchInstruction.getInstructionAddress());
+        PSPHT.put(getCacheEntry(selector, PSBHR.read(selector).read()), SC.read());
+        ShiftRegister SR = PSBHR.read(selector);
+        SR.insert(actual == BranchResult.TAKEN ? Bit.ONE : Bit.ZERO);
+        PSBHR.write(selector, SR.read());
     }
 
 
