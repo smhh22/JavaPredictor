@@ -1,4 +1,4 @@
-Thu Jun  1 13:01:36 UTC 2023
+Thu Jun  1 13:14:31 UTC 2023
 +------------+
 |SC  | 0 | 0 |
 +------------+
@@ -6024,5 +6024,5 @@ SAp:
 Exception in thread "main" hardwar.branch.prediction.judge.TestFailedException: Test failed, 342 out of 1000 assertions passed
 	at hardwar.branch.prediction.judge.Judge.main(Judge.java:39)
 SAs: 
-Exception in thread "main" hardwar.branch.prediction.judge.TestFailedException: Test failed, 257 out of 1000 assertions passed
-	at hardwar.branch.prediction.judge.Judge.main(Judge.java:39)
+Test passed, 1000 out of 1000 assertions passed
+
