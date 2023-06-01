@@ -48,7 +48,7 @@ public class SAg implements BranchPredictor {
     public void update(BranchInstruction branchInstruction, BranchResult actual) {
         // TODO: complete Task 2
         SC.load(CombinationalLogic.count(SC.read(), actual == BranchResult.TAKEN, CountMode.SATURATING));
-        Bit[] selector = getRBAddressLine(branchInstruction.getInstructionAddress()));
+        Bit[] selector = getRBAddressLine(branchInstruction.getInstructionAddress());
         PHT.put(PSBHR.read(selector).read(), SC.read());
         ShiftRegister SR = PSBHR.read(selector);
         SR.insert(actual == BranchResult.TAKEN ? Bit.ONE : Bit.ZERO);
