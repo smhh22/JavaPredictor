@@ -35,7 +35,7 @@ public class SAg implements BranchPredictor {
     @Override
     public BranchResult predict(BranchInstruction instruction) {
         // TODO: complete Task 1
-        Bit[] BH = PSBHR.read(CombinationalLogic.hash(instruction.getInstructionAddress(), KSize, HashMode.SIMPLE_CUT)).read();
+        Bit[] BH = PSBHR.read(CombinationalLogic.hash(instruction.getInstructionAddress(), KSize, HashMode.XOR)).read();
         PHT.putIfAbsent(BH, getDefaultBlock());
         Bit[] ans = PHT.get(BH);
         SC.load(ans);
